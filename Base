@@ -1,0 +1,29 @@
+setwd("/Users/") #Set Working directory 
+library(openxlsx) #Load package to read xl file
+library(plyr) #Load package to manipulate the shape the data is stored in 
+file = "ERUK DATABASE 31.07.2017.xlsx" #store the file name for easy recall
+file2 = "eruk_ronan.xlsx"
+
+eruk_ab_status <- read.xlsx(file, sheet=2, cols = 2:16, rows = 3:235) #loading only the antibody status 
+cols_nsabp <- c("LGI1","CASPR2", "Contactin-2", "NMDA","AMPA","GABAa", "GABAb","DPPX", "GLYCINEα1","Neurons") #loading the column names of the neuronal surface antibody positive to convert them later 
+eruk_ab_status[cols_nsabp] <- lapply(eruk_ab_status[cols_nsabp], factor)
+eruk_ab_status$LGI1 <-  revalue(eruk_ab_status$LGI1, c("LGI1 positive "=1, "Negative" = 0, "Negative (sticky)"=0, "Positive (4)" = 1,"Positive(3)" = 1 ))
+eruk_ab_status$CASPR2 <-  revalue(eruk_ab_status$CASPR2, c("Negative" = 0, "Negative (sticky)"=0, "Positive (4)" = 1,"Positive (1.5)" = 1 ))
+eruk_ab_status$`Contactin-2` <-  revalue(eruk_ab_status$`Contactin-2`, c("Negative" = 0, "Positive (1)" = 1, "nd" = 0))
+eruk_ab_status$NMDA <-  revalue(eruk_ab_status$NMDA, c("negative" = 0,"Negative" = 0, "Negative (sticky)" = 0,"POSITIVE (1.5)" =1,"Positive (2.5)" =1,"Positive (2)"=1, "Positive 1.5" =1))
+eruk_ab_status$AMPA <-  revalue(eruk_ab_status$AMPA, c("Negative" = 0, "Negative (sticky)" = 0,"Negative (n/s binding)" =0, "Positive (2); CBA score 2 at [serum 1in20], 1 at [serum 1in60], 0 at [serum 1in180]. Both alpha R1 (CBA score 2.5) and alpha R2 (CBA score 2.5) positive. AMPA2/3 positive" =1
+, "repeat" = 0))
+eruk_ab_status$GABAa <- revalue(eruk_ab_status$GABAa, c("Negative" = 0, "POSITIVE H/L and Fc* " = 1, "1,5@1/50; 0,75-1@1/100" = 1, "3 h/l and Fc" =1))
+eruk_ab_status$GABAb <- revalue(eruk_ab_status$GABAb, c("Negative" = 0, "Positive (3)" = 1, "Positive (4) serum and CSF" = 1, "1;0,75@1/200" = 1))
+eruk_ab_status$DPPX <- revalue(eruk_ab_status$DPPX, c("negative" = 0, "Negative" =0, "dead" = 0, "0.5 repeat" = 0,"n/sparkly" =0 ))
+eruk_ab_status$GLYCINEα1 <- revalue(eruk_ab_status$GLYCINEα1, c("Negative" =0,"1; 0,5@1/200" =0, "Low positive  (1-1.5)"  =0 , "Positive (3)" =1 )) #All low positives are taken as negatives, cross checked with New version of Database 
+eruk_ab_status$Neurons <- revalue(eruk_ab_status$Neurons, c("Negative" =0,"Looks N/S +" = 1, "Positive" =1, "Positive "=1, "Positive (+)" =1,  "Positive (+++)" =1, "Positive +" =1, "Positive ++" =1, "Positive +++" = 1, "nd" =0))
+#Old data and new data is concordant. All the positives and negatives for each antibody add up. 
+
+eruk_ab_status$antibody_status <- as.integer(rowSums(eruk_ab_status[,6:15] == "1")> 0)#Collapse all into Neuronal surface antibody positive 
+dnvgkc <- c("14","50","77","103","140","154","168","176")
+eruk_ab_status[dnvgkc,] <- lapply(eruk_ab_status[dnvgkc,], "3")
+
+eruk_ab_status$antibody_status <- as.factor(eruk_ab_status$antibody_status)
+eruk_ab_status$antibody_status[match(dnvgkc, rownames(eruk_ab_status$id)] <- "3"
+
